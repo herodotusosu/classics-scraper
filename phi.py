@@ -1,4 +1,5 @@
 import re
+import urllib
 
 import lxml.html
 
@@ -21,10 +22,11 @@ class Page:
         prev_url: The url to the previous page before this one.
         next_url: The url to the page after this one.
         """
-        self._raw_headings = raw_headings
-        self._raw_text = raw_text
-        self._prev_url = prev_url
-        self._next_url = next_url
+        self.raw_headings = raw_headings
+        self.raw_text = raw_text
+
+        self.prev_url = prev_url
+        self.next_url = next_url
 
         self._clean()
 
@@ -40,50 +42,35 @@ class Page:
         """
         Clean up each heading by removing superfluous whitespace.
         """
-        self._cleaned_headings = []
-        for heading in self._raw_headings:
-            cleaned_heading = heading.strip()
-            self._cleaned_headings.append(cleaned_heading)
+        self.clean_headings = []
+        for heading in self.raw_headings:
+            clean_heading = heading.strip()
+            self.clean_headings.append(clean_heading)
 
     def _clean_text(self):
         """
         Clean up the text by removing all the extra newlines and interpolated
         letter markup.
         """
-        tmp = self._raw_text.strip()
-        tmp = re.sub(r'\-\n {2,}', '', tmp)
+        tmp = re.sub(r'\-\n +\n +', '', self.raw_text)
         tmp = re.sub(r'\n +', ' ', tmp)
-        tmp = re.sub(r'  ', ' ', tmp)
-        tmp = re.sub(r'<(\w+)>', '\\1', tmp)
+        tmp = re.sub(r' {2,}', ' ', tmp)
+        tmp = re.sub(r'<(.+?)>', '\\1', tmp)
+        tmp = tmp.strip()
 
-        self._cleaned_text = tmp
-
-    def clean_headings(self):
-        """
-        Provide a clean versions of the headings of this page.
-
-        Returns:
-        The clean headings.
-        """
-        return self._cleaned_headings
-
-    def clean_text(self):
-        """
-        Provide a clean version of the text of this page.
-
-        Returns:
-        The clean text.
-        """
-        return self._cleaned_text
+        self.clean_text = tmp
 
         
-class URLFactory:
+class PageURLFactory:
     """
     Factory to create a page from a url.
     """
 
     TITLE_CLASS = 'title'
     LINE_QUERY = '//tr[not(@class)]/td[1]'
+
+    PREV_ID = 'prev'
+    NEXT_ID = 'next'
 
     @classmethod
     def create(cls, url):
@@ -98,14 +85,27 @@ class URLFactory:
         """
         root = lxml.html.parse(url).getroot()
         titles = []
-        for title_row in root.find_class(URLFactory.TITLE_CLASS):
+        for title_row in root.find_class(cls.TITLE_CLASS):
             title = title_row.text_content()
             titles.append(title)
 
         lines = []
-        for line in root.xpath(URLFactory.LINE_QUERY):
+        for line in root.xpath(cls.LINE_QUERY):
             line_text = line.text_content()
             lines.append(line_text)
         raw_text = ''.join(lines)
+
+        parse = urllib.parse.urlparse(url)
+        base = parse.scheme + '://' + parse.netloc
+
+        p = root.get_element_by_id(cls.PREV_ID)
+        prev_url = p.get('href')
+        if prev_url:
+            prev_url = urllib.parse.urljoin(base, prev_url)
+
+        n = root.get_element_by_id(cls.NEXT_ID)
+        next_url = n.get('href')
+        if next_url:
+            next_url = urllib.parse.urljoin(base, next_url)
         
-        return Page(raw_text, titles, '', '')
+        return Page(raw_text, titles, prev_url, next_url)
