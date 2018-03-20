@@ -52,7 +52,9 @@ class Page:
         Clean up the text by removing all the extra newlines and interpolated
         letter markup.
         """
-        tmp = re.sub(r'\-\n +\n +', '', self.raw_text)
+        tmp = self.raw_text.replace('<³⁰', '')
+        tmp = self.raw_text.replace('³⁰>', '')
+        tmp = re.sub(r'\-\n +\n +', '', tmp)
         tmp = re.sub(r'\n +', ' ', tmp)
         tmp = re.sub(r' {2,}', ' ', tmp)
         tmp = re.sub(r'<(.+?)>', '\\1', tmp)
