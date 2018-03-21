@@ -13,6 +13,8 @@ total_text.append(page.clean_text)
 
 while page.next_url:
     next_page = phi.PageURLFactory.create(page.next_url)
+    for heading in next_page.clean_headings:
+        total_text.append(heading)
     total_text.append(next_page.clean_text)
 
     page = next_page
