@@ -53,7 +53,9 @@ class Page:
         letter markup.
         """
         tmp = self.raw_text.replace('<³⁰', '')
-        tmp = self.raw_text.replace('³⁰>', '')
+        tmp = tmp.replace('³⁰>', '')
+        tmp = tmp.replace('—', '-')
+
         tmp = re.sub(r'\-\n +\n +', '', tmp)
         tmp = re.sub(r'\n +', ' ', tmp)
         tmp = re.sub(r' {2,}', ' ', tmp)
