@@ -58,7 +58,7 @@ class Page:
         tmp = tmp.replace('³⁰>', '')
         tmp = tmp.replace('—', '-')
 
-        tmp = re.sub(r'\-\n +\n +', '', tmp)
+        tmp = re.sub(r'\- *\n +\n +', '', tmp)
         tmp = re.sub(r'\n +', ' ', tmp)
         tmp = re.sub(r' {2,}', ' ', tmp)
         tmp = re.sub(r'<(.+?)>', '\\1', tmp)
