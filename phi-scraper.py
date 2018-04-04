@@ -19,5 +19,5 @@ while page.next_url:
 
     page = next_page
 
-final = '\nLEAVEBLANK\n'.join(total_text)
+final = '\n\n'.join(total_text)
 print(final)
