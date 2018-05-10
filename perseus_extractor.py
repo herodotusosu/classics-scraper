@@ -4,11 +4,14 @@ import argparse
 import re
 
 import betacode.conv
+from cltk.tokenize.word import WordTokenizer
 import lxml.etree
 
 parser = argparse.ArgumentParser()
 parser.add_argument('perseus', help='Name of perseus file to extract.')
 args = parser.parse_args()
+
+word_tokenizer = WordTokenizer('greek')
 
 perseus_parser = lxml.etree.XMLParser(no_network=False)
 with open(args.perseus) as f:
@@ -25,7 +28,13 @@ for node in tree.xpath('//p/*'):
         if text is not None:
             components.append(text)
 
+total = []
 for component in components:
     component = component.strip()
-    component = re.sub('\n{3,}', '\n\n', component)
-    print(betacode.conv.beta_to_uni(component))
+
+    if component:
+            beta = betacode.conv.beta_to_uni(component)
+            tokens = word_tokenizer.tokenize(beta)
+            total.append(' '.join(tokens))
+
+print('\n\n'.join(total))
